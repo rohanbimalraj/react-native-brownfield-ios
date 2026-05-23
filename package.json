@@ -1,0 +1,10 @@
+{
+  "private": true,
+  "name": "react-native-brownfield-ios",
+  "scripts": {
+    "install": "cd BrownfieldRN && npm install",
+    "start": "cd BrownfieldRN && npx react-native start",
+    "pods": "pod install",
+    "add": "cd BrownfieldRN && npm install"
+  }
+}
