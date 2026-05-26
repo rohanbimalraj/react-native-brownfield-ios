@@ -65,7 +65,7 @@ class ReactViewController: UIViewController {
 
 // MARK: - ReactNativeDelegate
 
-class ReactNativeDelegate: RCTDefaultReactNativeFactoryDelegate {
+private class ReactNativeDelegate: RCTDefaultReactNativeFactoryDelegate {
     override func sourceURL(for bridge: RCTBridge) -> URL? {
         bundleURL()
     }
