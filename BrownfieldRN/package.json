@@ -40,5 +40,15 @@
   },
   "engines": {
     "node": ">= 22.11.0"
+  },
+  "codegenConfig": {
+    "name": "BrownfieldRNSpec",
+    "type": "modules",
+    "jsSrcsDir": "specs",
+    "ios": {
+      "modulesProvider": {
+        "NativeUserModule": "RCTNativeUserModule"
+      }
+    }
   }
 }

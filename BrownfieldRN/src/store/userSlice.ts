@@ -14,6 +14,9 @@ export interface EditableUser {
 }
 
 interface UserState extends User {
+  phoneNumber: string;
+  deviceId: string;
+  pincode: string;
   isLoaded: boolean;
 }
 
@@ -22,6 +25,9 @@ const initialState: UserState = {
   email: '',
   role: '',
   token: '',
+  phoneNumber: '',
+  deviceId: '',
+  pincode: '',
   isLoaded: false,
 };
 
@@ -41,8 +47,17 @@ const userSlice = createSlice({
       state.email = action.payload.email;
       state.role = action.payload.role;
     },
+    setPhoneNumber: (state, action: PayloadAction<string>) => {
+      state.phoneNumber = action.payload;
+    },
+    setDeviceId: (state, action: PayloadAction<string>) => {
+      state.deviceId = action.payload;
+    },
+    setPincode: (state, action: PayloadAction<string>) => {
+      state.pincode = action.payload;
+    },
   },
 });
 
-export const { setUser, updateUser } = userSlice.actions;
+export const { setUser, updateUser, setPhoneNumber, setDeviceId, setPincode } = userSlice.actions;
 export default userSlice.reducer;

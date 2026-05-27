@@ -1,21 +1,58 @@
-import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import React, { useState } from 'react';
+import {
+  ActivityIndicator,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { RootState } from '../store/store';
+import { AppDispatch, RootState } from '../store/store';
+import { setPhoneNumber, setDeviceId, setPincode } from '../store/userSlice';
+import NativeUserModule from '../../specs/NativeUserModule';
+import { useUserNativeEvent } from '../hooks/useUserNativeEvent';
 
 export default function HomeScreen() {
   const user = useSelector((state: RootState) => state.user);
+  const dispatch = useDispatch<AppDispatch>();
   const insets = useSafeAreaInsets();
+  const [isFetchingDeviceId, setIsFetchingDeviceId] = useState(false);
+
+  // Sync call
+  const handleFetchPhoneNumber = () => {
+    const phoneNumber = NativeUserModule?.getPhoneNumber() ?? '';
+    dispatch(setPhoneNumber(phoneNumber));
+  };
+
+  // Async call
+  const handleFetchDeviceId = async () => {
+    setIsFetchingDeviceId(true);
+    try {
+      const deviceId = await NativeUserModule?.getDeviceId();
+      dispatch(setDeviceId(deviceId ?? ''));
+    } catch (e) {
+      console.warn('Failed to fetch device ID', e);
+    } finally {
+      setIsFetchingDeviceId(false);
+    }
+  };
+
+  // Native event
+  useUserNativeEvent<{ pincode: string }>('pincodeUpdated', (data) => {
+    dispatch(setPincode(data.pincode));
+  });
 
   return (
     <LinearGradient
       colors={['#e0e7ff', '#f0f4ff', '#ffffff']}
       locations={[0, 0.5, 1]}
       style={styles.root}>
-      <View style={[styles.container, { paddingTop: insets.top }]}>
+      <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
 
+      <View style={[styles.container, { paddingTop: insets.top }]}>
         <Text style={styles.screenLabel}>Home Screen</Text>
 
         <View style={styles.card}>
@@ -42,6 +79,41 @@ export default function HomeScreen() {
 
           <View style={styles.divider} />
 
+          <View style={styles.row}>
+            <Text style={styles.label}>Phone</Text>
+            {user.phoneNumber ? (
+              <Text style={styles.value}>{user.phoneNumber}</Text>
+            ) : (
+              <TouchableOpacity onPress={handleFetchPhoneNumber} style={styles.fetchButton}>
+                <Text style={styles.fetchButtonText}>Get from Native</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+
+          <View style={styles.divider} />
+
+          <View style={styles.row}>
+            <Text style={styles.label}>Device ID</Text>
+            {user.deviceId ? (
+              <Text style={styles.value}>{user.deviceId}</Text>
+            ) : isFetchingDeviceId ? (
+              <ActivityIndicator size="small" color="#6366f1" />
+            ) : (
+              <TouchableOpacity onPress={handleFetchDeviceId} style={styles.fetchButton}>
+                <Text style={styles.fetchButtonText}>Get from Native</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+
+          <View style={styles.divider} />
+
+          <View style={styles.row}>
+            <Text style={styles.label}>Pincode</Text>
+            <Text style={styles.value}>{user.pincode || '—'}</Text>
+          </View>
+
+          <View style={styles.divider} />
+
           <View>
             <Text style={styles.label}>Token</Text>
             <Text style={styles.token}>{user.token}</Text>
@@ -49,7 +121,6 @@ export default function HomeScreen() {
 
           <Text style={styles.hint}>Token passed from native layer</Text>
         </View>
-
       </View>
     </LinearGradient>
   );
@@ -104,6 +175,9 @@ const styles = StyleSheet.create({
     color: '#1e293b',
     fontSize: 14,
     fontWeight: '600',
+    flexShrink: 1,
+    marginLeft: 8,
+    textAlign: 'right',
   },
   token: {
     color: '#6366f1',
@@ -121,5 +195,16 @@ const styles = StyleSheet.create({
     fontSize: 11,
     marginTop: 16,
     textAlign: 'right',
+  },
+  fetchButton: {
+    backgroundColor: '#6366f1',
+    paddingVertical: 4,
+    paddingHorizontal: 10,
+    borderRadius: 6,
+  },
+  fetchButtonText: {
+    color: '#ffffff',
+    fontSize: 12,
+    fontWeight: '600',
   },
 });
